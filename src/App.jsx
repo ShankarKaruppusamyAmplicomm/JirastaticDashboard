@@ -23,6 +23,24 @@ function App() {
   const [csvIssues, setCSVIssues] = useState(null); // Store raw CSV issues for re-filtering
   const [viewMode, setViewMode] = useState('overview'); // 'overview' or 'analytics'
 
+  // Load CSV data from localStorage on mount
+  useEffect(() => {
+    const savedIssues = localStorage.getItem('jira_csv_issues');
+    if (savedIssues) {
+      try {
+        const issues = JSON.parse(savedIssues);
+        if (Array.isArray(issues) && issues.length > 0) {
+          setCSVIssues(issues);
+          const processedData = processProjectData(issues, dateRange);
+          setProjectData(processedData);
+        }
+      } catch (err) {
+        console.error('Error loading saved CSV data:', err);
+        localStorage.removeItem('jira_csv_issues'); // Clear corrupted data
+      }
+    }
+  }, []);
+
   // Re-process CSV data when date range changes
   useEffect(() => {
     if (csvIssues) {
@@ -50,8 +68,9 @@ function App() {
     setError(null);
 
     try {
-      // Store raw CSV issues for re-filtering when date range changes
+      // Store raw CSV issues in state and localStorage
       setCSVIssues(issues);
+      localStorage.setItem('jira_csv_issues', JSON.stringify(issues));
 
       const processedData = processProjectData(issues, dateRange);
       setProjectData(processedData);
