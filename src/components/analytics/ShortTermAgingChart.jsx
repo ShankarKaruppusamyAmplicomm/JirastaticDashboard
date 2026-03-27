@@ -29,8 +29,7 @@ const ShortTermAgingChart = ({ bugs }) => {
         bugs.forEach(bug => {
             const ageHrs = bug.ageInHours ?? (bug.age * 24);
             const priority = bug.priority || 'Medium';
-            const bucket = buckets.find(b => ageHrs > b.min && ageHrs <= b.max) || 
-                          (ageHrs <= 0 ? buckets[0] : null); // Handle edge case
+            const bucket = buckets.find(b => ageHrs >= b.min && ageHrs <= b.max);
 
             if (bucket && bucket[priority] !== undefined) {
                 bucket[priority]++;

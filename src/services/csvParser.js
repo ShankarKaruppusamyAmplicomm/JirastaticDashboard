@@ -65,8 +65,9 @@ const mapHeaders = (headers) => {
     const map = {};
     
     // Mapping rules: standard field -> array of possible CSV header names (lowercased)
+    // Order matters: the first match in the array will be used
     const mappings = {
-        key: ['key', 'issue key', 'issue id'],
+        key: ['ticket number', 'issue key', 'key', 'issue id'],
         summary: ['summary'],
         status: ['status'],
         created: ['created', 'created date'],
@@ -80,7 +81,7 @@ const mapHeaders = (headers) => {
     };
 
     Object.entries(mappings).forEach(([field, variations]) => {
-        const found = headers.find(h => variations.includes(h));
+        const found = variations.find(v => headers.includes(v));
         if (found) {
             map[field] = found;
         }

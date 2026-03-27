@@ -14,7 +14,7 @@ const PRIORITY_MAP = {
 };
 
 const STATUS_GROUPS = {
-    resolved: ["Closed", "UAT Complete", "Resolved", "resolved" , "Testing Complete", "Dev Complete", "IN PRODUCTION", "As Designed", "DEFERRED", "Done", "Fixed"],
+    resolved: ["Closed", "Resolved" , "resolved" ],
     invalid: ["INVALID", "Invalid", "Won't Fix", "Cannot Reproduce", "Not a Bug"],
     duplicate: ["Duplicate", "DUPLICATE"],
     open: ["Open", "Reopened", "To Do", "In Progress"]
@@ -215,7 +215,8 @@ export function calculateShortTermTrends(bugs, startDate, endDate) {
     const bucketTrends = buckets.map(bucket => {
         const bucketBugs = bugs.filter(bug => {
             const ageHrs = calculateAgeInHours(bug);
-            return ageHrs > bucket.min && ageHrs <= bucket.max;
+            // Include lower bound to capture 0-hour bugs in 0-4 bucket
+            return ageHrs >= bucket.min && ageHrs <= bucket.max;
         });
         
         // We use 'created' as the baseline for the trend line

@@ -1,5 +1,4 @@
-import React from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, LabelList } from 'recharts';
 
 const COLORS = {
     // Environment
@@ -36,7 +35,7 @@ const CustomTooltip = ({ active, payload }) => {
     return null;
 };
 
-const DonutChart = ({ title, data, dataKey }) => (
+const DonutChart = ({ title, data }) => (
     <div style={{ flex: 1, minWidth: '250px' }}>
         <h4 style={{ textAlign: 'center', marginBottom: '1rem', color: 'var(--color-text-secondary)' }}>{title}</h4>
         <div style={{ height: 250 }}>
@@ -50,6 +49,7 @@ const DonutChart = ({ title, data, dataKey }) => (
                         outerRadius={80}
                         paddingAngle={5}
                         dataKey="value"
+                        label={({ name, value }) => `${value}`}
                     >
                         {data.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={COLORS[entry.name] || COLORS.Unknown} />

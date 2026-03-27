@@ -9,7 +9,7 @@ const DetailedBugTable = ({ bugs }) => {
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
                     <thead>
                         <tr style={{ background: 'rgba(255, 255, 255, 0.05)', textAlign: 'left' }}>
-                            <th style={{ padding: '1rem', borderBottom: '1px solid var(--color-border)' }}>Issue Key</th>
+                            <th style={{ padding: '1rem', borderBottom: '1px solid var(--color-border)' }}>Ticket Number</th>
                             <th style={{ padding: '1rem', borderBottom: '1px solid var(--color-border)' }}>Priority</th>
                             <th style={{ padding: '1rem', borderBottom: '1px solid var(--color-border)' }}>Status</th>
                             <th style={{ padding: '1rem', borderBottom: '1px solid var(--color-border)' }}>Assignee</th>

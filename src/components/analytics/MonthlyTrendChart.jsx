@@ -7,6 +7,7 @@ import {
     CartesianGrid,
     Tooltip,
     Legend,
+    LabelList,
     ResponsiveContainer
 } from 'recharts';
 
@@ -22,7 +23,7 @@ const MonthlyTrendChart = ({ data }) => {
                 <ResponsiveContainer>
                     <BarChart
                         data={data}
-                        margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                        margin={{ top: 25, right: 30, left: 0, bottom: 0 }}
                     >
                         <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
                         <XAxis
@@ -44,8 +45,12 @@ const MonthlyTrendChart = ({ data }) => {
                             cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
                         />
                         <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                        <Bar dataKey="raised" name="Raised" fill="var(--color-primary)" radius={[4, 4, 0, 0]} />
-                        <Bar dataKey="resolved" name="Resolved" fill="var(--color-success)" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="raised" name="Raised" fill="var(--color-primary)" radius={[4, 4, 0, 0]}>
+                            <LabelList dataKey="raised" position="top" fill="var(--color-text-secondary)" style={{ fontSize: '0.8rem' }} />
+                        </Bar>
+                        <Bar dataKey="resolved" name="Resolved" fill="var(--color-success)" radius={[4, 4, 0, 0]}>
+                            <LabelList dataKey="resolved" position="top" fill="var(--color-text-secondary)" style={{ fontSize: '0.8rem' }} />
+                        </Bar>
                     </BarChart>
                 </ResponsiveContainer>
             </div>
