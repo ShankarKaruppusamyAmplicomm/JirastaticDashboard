@@ -77,8 +77,12 @@ const mapHeaders = (headers) => {
         labels: ['labels'],
         updated: ['updated', 'updated date'],
         description: ['description', 'summary'], // fallback
-        reporter: ['reporter']
+        reporter: ['reporter'],
+        tenant: ['tenant', 'client', 'customer', 'account'],
+        rca: ['root cause analysis', 'root cause', 'rca'],
+        criticality: ['criticality', 'severity', 'impact']
     };
+
 
     Object.entries(mappings).forEach(([field, variations]) => {
         const found = variations.find(v => headers.includes(v));
@@ -149,11 +153,15 @@ const transformToJiraFormat = (data, fieldMap) => {
                 labels: labelsRaw ? (typeof labelsRaw === 'string' ? labelsRaw.split(',').map(l => l.trim()) : []) : [],
                 updated: updated,
                 description: descriptionRaw || '',
-                reporter: reporterRaw ? { displayName: reporterRaw.trim() } : null
+                reporter: reporterRaw ? { displayName: reporterRaw.trim() } : null,
+                tenant: getVal('tenant') || 'Global',
+                rca: getVal('rca') || 'Unknown',
+                criticality: getVal('criticality') || 'Normal'
             }
         };
     });
-};
+}
+
 
 /**
  * Parse date string to ISO format

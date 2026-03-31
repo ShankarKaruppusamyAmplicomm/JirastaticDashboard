@@ -22,6 +22,9 @@ function App() {
   const [csvModalOpen, setCSVModalOpen] = useState(false);
   const [csvIssues, setCSVIssues] = useState(null); // Store raw CSV issues for re-filtering
   const [viewMode, setViewMode] = useState('overview'); // 'overview' or 'analytics'
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedTenant, setSelectedTenant] = useState('All Tenants');
+
 
   // Load CSV data from localStorage on mount
   useEffect(() => {
@@ -31,8 +34,6 @@ function App() {
         const issues = JSON.parse(savedIssues);
         if (Array.isArray(issues) && issues.length > 0) {
           setCSVIssues(issues);
-          const processedData = processProjectData(issues, dateRange);
-          setProjectData(processedData);
         }
       } catch (err) {
         console.error('Error loading saved CSV data:', err);
@@ -41,46 +42,38 @@ function App() {
     }
   }, []);
 
-  // Re-process CSV data when date range changes
+  // Filter and process data
+  const filteredIssues = React.useMemo(() => {
+    if (!csvIssues) return [];
+    return csvIssues.filter(issue => {
+      const matchesSearch = !searchTerm || issue.key.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesTenant = selectedTenant === 'All Tenants' || (issue.fields.tenant || 'Global') === selectedTenant;
+      return matchesSearch && matchesTenant;
+    });
+  }, [csvIssues, searchTerm, selectedTenant]);
+
+  const tenants = React.useMemo(() => {
+    if (!csvIssues) return ['All Tenants'];
+    const uniqueTenants = Array.from(new Set(csvIssues.map(i => i.fields.tenant || 'Global')));
+    return ['All Tenants', ...uniqueTenants.sort()];
+  }, [csvIssues]);
+
   useEffect(() => {
     if (csvIssues) {
-      reprocessCSVData();
+      setLoading(true);
+      try {
+        const processedData = processProjectData(filteredIssues, dateRange);
+        setProjectData(processedData);
+      } finally {
+        setLoading(false);
+      }
     }
-  }, [dateRange]);
-
-  const reprocessCSVData = () => {
-    if (!csvIssues) return;
-
-    setLoading(true);
-    try {
-      const processedData = processProjectData(csvIssues, dateRange);
-      setProjectData(processedData);
-    } catch (err) {
-      console.error('Error re-processing CSV data:', err);
-      setError('Failed to process CSV data with new date range');
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [filteredIssues, dateRange]);
 
   const handleCSVDataLoaded = (issues) => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      // Store raw CSV issues in state and localStorage
-      setCSVIssues(issues);
-      localStorage.setItem('jira_csv_issues', JSON.stringify(issues));
-
-      const processedData = processProjectData(issues, dateRange);
-      setProjectData(processedData);
-      setCSVModalOpen(false);
-    } catch (err) {
-      console.error('Error processing CSV data:', err);
-      setError('Failed to process CSV data: ' + err.message);
-    } finally {
-      setLoading(false);
-    }
+    setCSVIssues(issues);
+    localStorage.setItem('jira_csv_issues', JSON.stringify(issues));
+    setCSVModalOpen(false);
   };
 
   const handleCSVError = (errorMessage) => {
@@ -90,86 +83,120 @@ function App() {
   return (
     <div className="app">
       <header className="header">
-        <h1 className="header-title">
-          <BarChart2 size={48} style={{ display: 'inline', marginRight: '1rem', verticalAlign: 'middle' }} />
-          Jira Bug Trend Dashboard
-        </h1>
-        <p className="header-subtitle">
-          Track and analyze bug metrics from CSV data
-        </p>
+        <div className="header-row">
+          <div className="header-brand">
+            <BarChart2 size={24} style={{ color: 'var(--color-primary-light)' }} />
+            <h1 className="header-title">Jira Analytics</h1>
+          </div>
+          
+          <div className="header-main-controls">
+            <DateRangePicker
+              startDate={dateRange.startDate}
+              endDate={dateRange.endDate}
+              onChange={setDateRange}
+            />
+
+            <div className="view-toggle desktop-only">
+              <button
+                className={`btn ${viewMode === 'overview' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => setViewMode('overview')}
+              >
+                Overview
+              </button>
+              <button
+                className={`btn ${viewMode === 'analytics' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => setViewMode('analytics')}
+              >
+                Analytics
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="header-row bottom-row">
+          <div className="controls-group">
+            <input 
+              className="input" 
+              placeholder="ID prefix..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{ width: '100px' }}
+            />
+            <select 
+              className="input"
+              value={selectedTenant}
+              onChange={(e) => setSelectedTenant(e.target.value)}
+              style={{ maxWidth: '120px' }}
+            >
+              {tenants.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+            
+            <button className="btn btn-primary btn-sm" onClick={() => setCSVModalOpen(true)}>
+              <Upload size={14} /> Upload
+            </button>
+          </div>
+        </div>
+
+        <div className="header-row mobile-only-row">
+          <div className="view-toggle mobile-only">
+            <button
+              className={`btn ${viewMode === 'overview' ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setViewMode('overview')}
+            >
+              Overview
+            </button>
+            <button
+              className={`btn ${viewMode === 'analytics' ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setViewMode('analytics')}
+            >
+              Analytics
+            </button>
+          </div>
+        </div>
       </header>
 
-      <div className="controls">
-        <DateRangePicker
-          startDate={dateRange.startDate}
-          endDate={dateRange.endDate}
-          onChange={setDateRange}
-        />
 
-        <button
-          className="btn btn-primary"
-          onClick={() => setCSVModalOpen(true)}
-        >
-          <Upload size={18} />
-          Upload CSV
-        </button>
-      </div>
+
+
+
 
       {!csvIssues && (
-        <div style={{
-          textAlign: 'center',
-          padding: 'var(--spacing-xl)',
-          background: 'rgba(99, 102, 241, 0.1)',
-          border: '1px solid var(--color-primary)',
-          borderRadius: 'var(--radius-md)',
-          marginBottom: 'var(--spacing-xl)',
-          color: 'var(--color-primary-light)'
-        }}>
-          � Upload a CSV file to get started. Click "Upload CSV" to import your bug data.
+        <div style={{ textAlign: 'center', padding: 'var(--spacing-lg)', background: 'var(--glass-bg)', backdropFilter: 'var(--glass-blur)', border: 'var(--glass-border)', borderRadius: 'var(--radius-md)', color: 'var(--color-primary-light)', fontSize: '13px' }}>
+          💡 Click "Upload" in the header to import your Jira CSV.
         </div>
       )}
 
-      {csvIssues && (
-        <div style={{
-          textAlign: 'center',
-          padding: 'var(--spacing-md)',
-          background: 'rgba(34, 197, 94, 0.1)',
-          border: '1px solid rgba(34, 197, 94, 0.3)',
-          borderRadius: 'var(--radius-md)',
-          marginBottom: 'var(--spacing-xl)',
-          color: '#22c55e'
-        }}>
-          ✅ Displaying data from uploaded CSV file ({csvIssues.length} issues). Upload a new file to update.
+      {csvIssues && !searchTerm && selectedTenant === 'All Tenants' && (
+        <div style={{ textAlign: 'center', padding: 'var(--spacing-sm)', background: 'rgba(48, 209, 88, 0.1)', border: '1px solid rgba(48, 209, 88, 0.2)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--spacing-md)', color: 'var(--color-success)', fontSize: '12px' }}>
+          ✅ Displaying data from uploaded CSV file ({csvIssues.length} issues).
         </div>
       )}
+
+      {csvIssues && (searchTerm || selectedTenant !== 'All Tenants') && filteredIssues.length > 0 && (
+        <div style={{ textAlign: 'center', padding: 'var(--spacing-sm)', background: 'rgba(10, 132, 255, 0.1)', border: '1px solid rgba(10, 132, 255, 0.2)', borderRadius: 'var(--radius-md)', marginBottom: 'var(--spacing-md)', color: 'var(--color-primary)', fontSize: '12px' }}>
+          🔍 Showing {filteredIssues.length} of {csvIssues.length} issues matching filters.
+        </div>
+      )}
+
+      {csvIssues && filteredIssues.length === 0 && (
+        <div style={{ textAlign: 'center', padding: 'var(--spacing-lg)', background: 'rgba(255, 69, 58, 0.1)', border: '1px solid rgba(255, 69, 58, 0.2)', borderRadius: 'var(--radius-md)', color: 'var(--color-danger)', marginBottom: 'var(--spacing-md)', fontSize: '12px' }}>
+          ⚠️ No issues match your current filters.
+        </div>
+      )}
+
 
       {error && (
-        <div className="error">
+        <div className="error" style={{ marginBottom: 'var(--spacing-md)' }}>
           ⚠️ {error}
         </div>
       )}
-
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem', gap: '1rem' }}>
-        <button
-          className={`btn ${viewMode === 'overview' ? 'btn-primary' : 'btn-secondary'}`}
-          onClick={() => setViewMode('overview')}
-        >
-          <LayoutDashboard size={18} /> Overview
-        </button>
-        <button
-          className={`btn ${viewMode === 'analytics' ? 'btn-primary' : 'btn-secondary'}`}
-          onClick={() => setViewMode('analytics')}
-        >
-          <BarChart2 size={18} /> Advanced Analytics
-        </button>
-      </div>
-
       {loading ? (
         <div className="loading">
           <div className="spinner"></div>
           <p style={{ color: 'var(--color-text-secondary)' }}>Processing CSV data...</p>
         </div>
       ) : projectData ? (
+
         viewMode === 'overview' ? (
           <>
             {/* Project Dashboard */}

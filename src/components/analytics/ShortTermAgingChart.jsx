@@ -18,12 +18,13 @@ import {
 const ShortTermAgingChart = ({ bugs }) => {
     // Process Method: Group by Hour Range, then by Priority
     const processData = () => {
+        const isMobile = window.innerWidth < 400;
         const buckets = [
-            { name: '0-4 Hrs', min: 0, max: 4, Highest: 0, High: 0, Medium: 0, Low: 0, total: 0 },
-            { name: '4-8 Hrs', min: 4, max: 8, Highest: 0, High: 0, Medium: 0, Low: 0, total: 0 },
-            { name: '8-12 Hrs', min: 8, max: 12, Highest: 0, High: 0, Medium: 0, Low: 0, total: 0 },
-            { name: '12-24 Hrs', min: 12, max: 24, Highest: 0, High: 0, Medium: 0, Low: 0, total: 0 },
-            { name: '24+ Hrs', min: 24, max: Infinity, Highest: 0, High: 0, Medium: 0, Low: 0, total: 0 }
+            { name: '0-4 Hrs', displayName: isMobile ? '0-4h' : '0-4 Hrs', min: 0, max: 4, Highest: 0, High: 0, Medium: 0, Low: 0, total: 0 },
+            { name: '4-8 Hrs', displayName: isMobile ? '4-8h' : '4-8 Hrs', min: 4, max: 8, Highest: 0, High: 0, Medium: 0, Low: 0, total: 0 },
+            { name: '8-12 Hrs', displayName: isMobile ? '8-12h' : '8-12 Hrs', min: 8, max: 12, Highest: 0, High: 0, Medium: 0, Low: 0, total: 0 },
+            { name: '12-24 Hrs', displayName: isMobile ? '12-24h' : '12-24 Hrs', min: 12, max: 24, Highest: 0, High: 0, Medium: 0, Low: 0, total: 0 },
+            { name: '24+ Hrs', displayName: isMobile ? '24h+' : '24+ Hrs', min: 24, max: Infinity, Highest: 0, High: 0, Medium: 0, Low: 0, total: 0 }
         ];
 
         bugs.forEach(bug => {
@@ -44,27 +45,28 @@ const ShortTermAgingChart = ({ bugs }) => {
 
     return (
         <div className="glass-card">
-            <h3 style={{ marginBottom: '0.5rem' }}>Short-Term Aging (Hours)</h3>
+            <h3 style={{ marginBottom: '0.5rem' }}>Short-Term Aging</h3>
             <p style={{ color: 'var(--color-text-secondary)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-                Bug volume by hour intervals and priority
+                Bug volume by hour and priority
             </p>
 
-            <div style={{ height: 350, width: '100%' }}>
+            <div style={{ height: 'var(--chart-height)', minHeight: '180px', width: '100%' }}>
                 <ResponsiveContainer>
                     <BarChart
                         data={data}
                         layout="vertical"
-                        margin={{ top: 5, right: 40, left: 40, bottom: 5 }}
+                        margin={{ top: 5, right: 30, left: 10, bottom: 5 }}
                     >
                         <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" horizontal={false} />
-                        <XAxis type="number" stroke="var(--color-text-tertiary)" tick={{ fill: 'var(--color-text-secondary)' }} />
+                        <XAxis type="number" stroke="var(--color-text-tertiary)" tick={{ fill: 'var(--color-text-secondary)', fontSize: 10 }} />
                         <YAxis
-                            dataKey="name"
+                            dataKey="displayName"
                             type="category"
                             stroke="var(--color-text-tertiary)"
-                            tick={{ fill: 'var(--color-text-secondary)', fontWeight: 600 }}
-                            width={100}
+                            tick={{ fill: 'var(--color-text-secondary)', fontWeight: 600, fontSize: 10 }}
+                            width={50}
                         />
+
                         <Tooltip
                             contentStyle={{
                                 backgroundColor: 'rgba(30, 35, 48, 0.95)',

@@ -19,7 +19,8 @@ const MonthlyTrendChart = ({ data }) => {
                 Total bugs raised vs resolved per month
             </p>
 
-            <div style={{ height: 350, width: '100%' }}>
+            <div style={{ height: 'var(--chart-height)', minHeight: '180px', width: '100%' }}>
+
                 <ResponsiveContainer>
                     <BarChart
                         data={data}

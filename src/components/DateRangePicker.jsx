@@ -30,42 +30,43 @@ const DateRangePicker = ({ startDate, endDate, onChange }) => {
     };
 
     return (
-        <div className="date-range-picker">
-            <div style={{ display: 'flex', gap: 'var(--spacing-md)', flexWrap: 'wrap', alignItems: 'center' }}>
-                <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
-                    {presets.map(preset => (
-                        <button
-                            key={preset.days}
-                            className="btn btn-secondary"
-                            onClick={() => handlePresetClick(preset.days)}
-                            style={{ fontSize: 'var(--font-size-sm)' }}
-                        >
-                            {preset.label}
-                        </button>
-                    ))}
-                </div>
+        <div className="date-range-picker" style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', flexWrap: 'nowrap' }}>
+            <select 
+                className="input" 
+                onChange={(e) => handlePresetClick(parseInt(e.target.value))}
+                style={{ fontSize: '11px', padding: '2px 4px', minWidth: '100px', height: '24px' }}
+                defaultValue=""
+            >
+                <option value="" disabled>Select Range</option>
+                {presets.map(preset => (
+                    <option key={preset.days} value={preset.days}>
+                        {preset.label}
+                    </option>
+                ))}
+            </select>
 
-                <div style={{ display: 'flex', gap: 'var(--spacing-sm)', alignItems: 'center' }}>
-                    <Calendar size={20} style={{ color: 'var(--color-text-tertiary)' }} />
-                    <input
-                        type="date"
-                        className="input"
-                        value={format(startDate, 'yyyy-MM-dd')}
-                        onChange={(e) => handleCustomChange('start', e.target.value)}
-                        style={{ fontSize: 'var(--font-size-sm)' }}
-                    />
-                    <span style={{ color: 'var(--color-text-tertiary)' }}>to</span>
-                    <input
-                        type="date"
-                        className="input"
-                        value={format(endDate, 'yyyy-MM-dd')}
-                        onChange={(e) => handleCustomChange('end', e.target.value)}
-                        style={{ fontSize: 'var(--font-size-sm)' }}
-                    />
-                </div>
+            <div style={{ display: 'flex', gap: '2px', alignItems: 'center', flexWrap: 'nowrap' }}>
+                <Calendar size={14} style={{ color: 'var(--color-text-tertiary)' }} />
+                <input
+                    type="date"
+                    className="input"
+                    value={format(startDate, 'yyyy-MM-dd')}
+                    onChange={(e) => handleCustomChange('start', e.target.value)}
+                    style={{ fontSize: '10px', padding: '2px 4px', width: '95px', height: '24px' }}
+                />
+                <span style={{ color: 'var(--color-text-tertiary)', fontSize: '10px' }}>to</span>
+                <input
+                    type="date"
+                    className="input"
+                    value={format(endDate, 'yyyy-MM-dd')}
+                    onChange={(e) => handleCustomChange('end', e.target.value)}
+                    style={{ fontSize: '10px', padding: '2px 4px', width: '95px', height: '24px' }}
+                />
             </div>
         </div>
     );
+
+
 };
 
 export default DateRangePicker;

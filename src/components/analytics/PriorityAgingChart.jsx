@@ -14,19 +14,25 @@ import {
 const PriorityAgingChart = ({ bugs }) => {
     // Process Method: Group by Priority, then by Age Range
     const processData = () => {
+        const isMobile = window.innerWidth < 400;
         const priorities = ['Highest', 'High', 'Medium', 'Low'];
-        const data = priorities.map(p => ({
-            name: p,
-            '0-7 Days (0-168 Hrs)': 0,
-            '8-30 Days (169-720 Hrs)': 0,
-            '30+ Days (>720 Hrs)': 0,
-            total: 0
-        }));
+
+        const dataRows = priorities.map(p => {
+            const row = {
+                name: p,
+                displayName: isMobile ? p.substring(0, 4) : p,
+                '0-7 Days (0-168 Hrs)': 0,
+                '8-30 Days (169-720 Hrs)': 0,
+                '30+ Days (>720 Hrs)': 0,
+                total: 0
+            };
+            return row;
+        });
 
         bugs.forEach(bug => {
             const ageHrs = bug.ageInHours ?? (bug.age * 24);
             const priority = bug.priority || 'Medium';
-            const row = data.find(d => d.name === priority);
+            const row = dataRows.find(d => d.name === priority);
 
             if (row) {
                 if (ageHrs <= 168) row['0-7 Days (0-168 Hrs)']++;
@@ -36,34 +42,44 @@ const PriorityAgingChart = ({ bugs }) => {
             }
         });
 
-        return data;
+        return dataRows;
     };
 
+
     const data = processData();
+
+    // Map labels for mobile
+    const getMobileLabel = (label) => {
+        if (label === '0-7 Days (0-168 Hrs)') return '0-7d';
+        if (label === '8-30 Days (169-720 Hrs)') return '8-30d';
+        if (label === '30+ Days (>720 Hrs)') return '30d+';
+        return label;
+    };
 
     return (
         <div className="glass-card">
             <h3 style={{ marginBottom: '0.5rem' }}>Priority Aging</h3>
             <p style={{ color: 'var(--color-text-secondary)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-                Age of open bugs by priority (Days & Hours)
+                Age of open bugs by priority
             </p>
 
-            <div style={{ height: 350, width: '100%' }}>
+            <div style={{ height: 'var(--chart-height)', minHeight: '180px', width: '100%' }}>
                 <ResponsiveContainer>
                     <BarChart
                         data={data}
                         layout="vertical"
-                        margin={{ top: 5, right: 40, left: 40, bottom: 5 }}
+                        margin={{ top: 5, right: 30, left: 10, bottom: 5 }}
                     >
                         <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" horizontal={false} />
-                        <XAxis type="number" stroke="var(--color-text-tertiary)" tick={{ fill: 'var(--color-text-secondary)' }} />
+                        <XAxis type="number" stroke="var(--color-text-tertiary)" tick={{ fill: 'var(--color-text-secondary)', fontSize: 10 }} />
                         <YAxis
-                            dataKey="name"
+                            dataKey="displayName"
                             type="category"
                             stroke="var(--color-text-tertiary)"
-                            tick={{ fill: 'var(--color-text-secondary)', fontWeight: 600 }}
-                            width={80}
+                            tick={{ fill: 'var(--color-text-secondary)', fontWeight: 600, fontSize: 10 }}
+                            width={50}
                         />
+
                         <Tooltip
                             contentStyle={{
                                 backgroundColor: 'rgba(30, 35, 48, 0.95)',

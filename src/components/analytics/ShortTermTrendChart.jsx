@@ -25,7 +25,8 @@ const ShortTermTrendChart = ({ data, title, subtitle }) => {
                 </p>
             )}
 
-            <div style={{ height: 350, width: '100%' }}>
+            <div style={{ height: 'var(--chart-height)', minHeight: '180px', width: '100%' }}>
+
                 <ResponsiveContainer>
                     <LineChart
                         data={data}

@@ -295,9 +295,13 @@ export function processAnalyticsData(bugs) {
         environment: classifyEnvironment(bug),
         source: classifySource(bug),
         age: calculateAge(bug),
-        ageInHours: calculateAgeInHours(bug)
+        ageInHours: calculateAgeInHours(bug),
+        tenant: bug.fields.tenant || 'Global',
+        rca: bug.fields.rca || 'Unknown',
+        criticality: bug.fields.criticality || 'Normal'
     }));
 }
+
 
 /**
  * Process project-wide data with extended analytics
@@ -439,7 +443,7 @@ export function calculateProjectMetrics(bugs, dateRange) {
         avgTimeToCloseFormatted: formatDuration(avgTimeToClose),
         openTrend,
         resolvedTrend,
-        totalBugs: bugsInRange.length
+        totalBugs: (new Set([...openBugs.map(b => (b.key || b.id)), ...closedBugs.map(b => (b.key || b.id))])).size
     };
 }
 
@@ -479,7 +483,7 @@ export function calculateTeamMetrics(bugs, dateRange) {
         avgTimeToCloseFormatted: formatDuration(avgTimeToClose),
         openTrend,
         resolvedTrend,
-        totalBugs: bugsInRange.length
+        totalBugs: (new Set([...openBugs.map(b => (b.key || b.id)), ...closedBugs.map(b => (b.key || b.id))])).size
     };
 }
 

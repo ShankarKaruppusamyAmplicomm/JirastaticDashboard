@@ -14,12 +14,13 @@ const TrendChart = ({ data, title, subtitle, lines }) => {
     }));
 
     const colors = {
-        open: '#f59e0b',
-        Resolved: '#10b981',
-        'Automation Team': '#6366f1',
-        'UAT Team': '#8b5cf6',
-        'System Testing Team': '#ec4899'
+        open: '#FFD60A', // Apple Yellow
+        Resolved: '#30D158', // Apple Green
+        'Automation Team': '#0A84FF', // Apple Blue
+        'UAT Team': '#5e5ce6', // Apple Indigo
+        'System Testing Team': '#FF375F' // Apple Pink
     };
+
 
     return (
         <div className="chart-container">
@@ -27,32 +28,36 @@ const TrendChart = ({ data, title, subtitle, lines }) => {
                 <h3 className="chart-title">{title}</h3>
                 {subtitle && <p className="chart-subtitle">{subtitle}</p>}
             </div>
-            <ResponsiveContainer width="100%" height={300}>
+            <div style={{ height: 'var(--chart-height)', minHeight: '150px' }}>
+                <ResponsiveContainer width="100%" height="100%">
+
                 <LineChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
                     <XAxis
                         dataKey="dateFormatted"
                         stroke="var(--color-text-tertiary)"
-                        style={{ fontSize: '0.875rem' }}
+                        style={{ fontSize: '0.75rem' }}
                     />
                     <YAxis
                         stroke="var(--color-text-tertiary)"
-                        style={{ fontSize: '0.875rem' }}
+                        style={{ fontSize: '0.75rem' }}
                     />
                     <Tooltip
                         contentStyle={{
                             backgroundColor: 'var(--color-bg-secondary)',
                             border: '1px solid var(--color-border)',
                             borderRadius: 'var(--radius-md)',
-                            color: 'var(--color-text-primary)'
+                            color: 'var(--color-text-primary)',
+                            fontSize: '0.75rem'
                         }}
                     />
                     <Legend
                         wrapperStyle={{
                             color: 'var(--color-text-secondary)',
-                            fontSize: '0.875rem'
+                            fontSize: '0.75rem'
                         }}
                     />
+
                     {lines.map((line, index) => (
                         <Line
                             key={line.dataKey}
@@ -67,6 +72,7 @@ const TrendChart = ({ data, title, subtitle, lines }) => {
                     ))}
                 </LineChart>
             </ResponsiveContainer>
+            </div>
         </div>
     );
 };

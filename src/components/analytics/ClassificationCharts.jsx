@@ -38,7 +38,8 @@ const CustomTooltip = ({ active, payload }) => {
 const DonutChart = ({ title, data }) => (
     <div style={{ flex: 1, minWidth: '250px' }}>
         <h4 style={{ textAlign: 'center', marginBottom: '1rem', color: 'var(--color-text-secondary)' }}>{title}</h4>
-        <div style={{ height: 250 }}>
+        <div style={{ height: 'var(--chart-height)', minHeight: '180px' }}>
+
             <ResponsiveContainer>
                 <PieChart>
                     <Pie
