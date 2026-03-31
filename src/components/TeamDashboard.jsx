@@ -69,10 +69,10 @@ const TeamDashboard = ({ teamName, metrics, index }) => {
             <TrendChart
                 data={combinedTrendData}
                 title={`${teamName} - Daily Bug Trends`}
-                subtitle="Open/In Progress vs Resolved/Fixed bugs over time"
+                subtitle="Open vs Resolved bugs over time"
                 lines={[
-                    { dataKey: 'open', name: 'Open/In Progress' },
-                    { dataKey: 'resolved', name: 'Resolved/Fixed' }
+                    { dataKey: 'open', name: 'Open' },
+                    { dataKey: 'resolved', name: 'Resolved' }
                 ]}
             />
         </div>
