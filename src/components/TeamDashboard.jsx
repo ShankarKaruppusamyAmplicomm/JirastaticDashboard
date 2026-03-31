@@ -47,7 +47,7 @@ const TeamDashboard = ({ teamName, metrics, index }) => {
 
             <div className="metrics-grid">
                 <MetricCard
-                    label="Open / In Progress"
+                    label="Open"
                     value={metrics.openCount}
                     color="warning"
                     icon={Bug}

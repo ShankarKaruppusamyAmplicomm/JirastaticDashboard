@@ -80,7 +80,8 @@ const mapHeaders = (headers) => {
         reporter: ['reporter'],
         tenant: ['tenant', 'client', 'customer', 'account'],
         rca: ['root cause analysis', 'root cause', 'rca'],
-        criticality: ['criticality', 'severity', 'impact']
+        criticality: ['criticality', 'severity', 'impact'],
+        team: ['assigned team', 'team', 'assigned_team', 'group']
     };
 
 
@@ -156,7 +157,8 @@ const transformToJiraFormat = (data, fieldMap) => {
                 reporter: reporterRaw ? { displayName: reporterRaw.trim() } : null,
                 tenant: getVal('tenant') || 'Global',
                 rca: getVal('rca') || 'Unknown',
-                criticality: getVal('criticality') || 'Normal'
+                criticality: getVal('criticality') || 'Normal',
+                team: getVal('team') || 'Unknown'
             }
         };
     });

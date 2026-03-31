@@ -6,7 +6,8 @@ import DateRangePicker from './components/DateRangePicker';
 import CSVUploader from './components/CSVUploader';
 import TrendChart from './components/TrendChart';
 import AnalyticsDashboard from './components/analytics/AnalyticsDashboard';
-import { processProjectData } from './services/dataProcessor';
+import HealthAnalytics from './components/HealthAnalytics';
+import { processProjectData, calculateHealthData } from './services/dataProcessor';
 import './index.css';
 
 function App() {
@@ -63,12 +64,17 @@ function App() {
       setLoading(true);
       try {
         const processedData = processProjectData(filteredIssues, dateRange);
+        
+        // Calculate health metrics for the selected range
+        const allTenantsList = Array.from(new Set(csvIssues.map(i => i.fields.tenant || 'Global')));
+        processedData.healthData = calculateHealthData(filteredIssues, dateRange, allTenantsList);
+        
         setProjectData(processedData);
       } finally {
         setLoading(false);
       }
     }
-  }, [filteredIssues, dateRange]);
+  }, [filteredIssues, dateRange, csvIssues]);
 
   const handleCSVDataLoaded = (issues) => {
     setCSVIssues(issues);
@@ -222,10 +228,15 @@ function App() {
             />
           </>
         ) : (
-          <AnalyticsDashboard
-            teamName="Project"
-            metrics={projectData}
-          />
+          <div className="analytics-view">
+            <HealthAnalytics 
+              healthData={projectData.healthData} 
+            />
+            <AnalyticsDashboard
+              teamName="Project"
+              metrics={projectData}
+            />
+          </div>
         )
       ) : null}
 

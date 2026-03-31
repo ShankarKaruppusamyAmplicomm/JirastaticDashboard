@@ -487,6 +487,136 @@ export function calculateTeamMetrics(bugs, dateRange) {
     };
 }
 
+
+/**
+ * Calculate Health Analytics (Platform, Velocity, Client, Team)
+ */
+export function calculateHealthData(bugs, dateRange, allTenants) {
+    const { startDate, endDate } = dateRange;
+    const days = eachDayOfInterval({ start: startDate, end: endDate });
+
+    // Filter P0, P1, P2 bugs across the entire set
+    const highPriorityBugs = bugs.filter(bug => {
+        const p = classifyPriority(bug.fields.priority).name;
+        return ['Highest', 'High', 'Medium'].includes(p); // P0, P1, P2
+    });
+
+    // 1. Platform Health: P0, P1, P2 Opened vs Resolved per day
+    const platformHealth = days.map(day => {
+        const dateStr = format(day, 'yyyy-MM-dd');
+        const openedCount = highPriorityBugs.filter(b => 
+            format(parseISO(b.fields.created), 'yyyy-MM-dd') === dateStr
+        ).length;
+        const resolvedCount = highPriorityBugs.filter(b => 
+            b.fields.resolutiondate && 
+            classifyStatus(b.fields.status) === 'Resolved' &&
+            format(parseISO(b.fields.resolutiondate), 'yyyy-MM-dd') === dateStr
+        ).length;
+
+        return { date: dateStr, opened: openedCount, resolved: resolvedCount };
+    });
+
+    // 2. Velocity: (Resolved P0-P2) / (Opened P0-P2) per day
+    const velocityTrend = platformHealth.map(day => {
+        // Ratio logic: if opened is 0, velocity is resolution rate
+        const ratio = day.opened === 0 ? (day.resolved > 0 ? 100 : 0) : Math.min(200, (day.resolved / day.opened) * 100);
+        return { date: day.date, velocity: Math.round(ratio) };
+    });
+
+    // 3. Client Health: % of clients disrupted (at least one P0-P2 active)
+    const clientHealth = days.map(day => {
+        const dateStr = format(day, 'yyyy-MM-dd');
+        const d = day;
+        
+        // Count tenants with at least one P0-P2 active bug on this day
+        // Active means created <= day < resolutiondate (or null)
+        const disruptedTenantsSet = new Set();
+        highPriorityBugs.forEach(b => {
+             const created = parseISO(b.fields.created);
+             const resolved = b.fields.resolutiondate ? parseISO(b.fields.resolutiondate) : null;
+             
+             // Check if bug was active on this specific day
+             const isActive = created <= d && (!resolved || resolved > d);
+             if (isActive) {
+                 disruptedTenantsSet.add(b.fields.tenant || 'Global');
+             }
+        });
+
+        const totalClients = allTenants.length > 0 ? allTenants.length : 1;
+        const disruptionPercent = (disruptedTenantsSet.size / totalClients) * 100;
+
+        return { 
+            date: dateStr, 
+            disruption: Math.round(disruptionPercent),
+            disruptedCount: disruptedTenantsSet.size
+        };
+    });
+
+    // 4. Team Health: Dynamic trend lines for ALL teams found in data
+    const uniqueTeams = Array.from(new Set(
+        highPriorityBugs.flatMap(b => {
+            const teamField = b.fields.team || 'Unknown';
+            const labels = b.fields.labels || [];
+            // If it's a known team from your CSV, it should show up here
+            return [teamField, ...labels].filter(t => 
+                ['Frontend', 'Backend', 'Integration', 'Data Support', 'Cloud'].some(wt => t.toLowerCase().includes(wt.toLowerCase())) || 
+                (t !== 'Unknown' && t !== 'Global' && t !== 'Internal' && t !== 'Customer')
+            );
+        })
+    )).sort();
+
+    // Default to a sensible subset if list is huge, or just show the top teams
+    const targetTeams = uniqueTeams.length > 0 ? uniqueTeams : ["Frontend", "Backend", "Integration", "Data Support", "Cloud"];
+    
+    const teamHealth = targetTeams.map(teamName => {
+        const teamBugs = highPriorityBugs.filter(b => {
+            const t = (b.fields.team || "").toLowerCase();
+            const labels = (b.fields.labels || []).join(' ').toLowerCase();
+            const searchKey = teamName.toLowerCase();
+            return t.includes(searchKey) || labels.includes(searchKey);
+        });
+
+        const dailyTrends = days.map(day => {
+            const dateStr = format(day, 'yyyy-MM-dd');
+            const opened = teamBugs.filter(b => 
+                format(parseISO(b.fields.created), 'yyyy-MM-dd') === dateStr
+            ).length;
+            const resolved = teamBugs.filter(b => 
+                b.fields.resolutiondate && 
+                classifyStatus(b.fields.status) === 'Resolved' &&
+                format(parseISO(b.fields.resolutiondate), 'yyyy-MM-dd') === dateStr
+            ).length;
+            return { date: dateStr, opened, resolved };
+        });
+
+        const velocity = dailyTrends.map(day => {
+            const ratio = day.opened === 0 ? (day.resolved > 0 ? 100 : 0) : Math.min(200, (day.resolved / day.opened) * 100);
+            return { date: day.date, velocity: Math.round(ratio) };
+        });
+
+        return { team: teamName, data: dailyTrends, velocity };
+    });
+
+    // Merge individual team velocities into a single trend line for comparison
+    const teamVelocityTrend = days.map(day => {
+        const dateStr = format(day, 'yyyy-MM-dd');
+        const entry = { date: dateStr };
+        teamHealth.forEach(th => {
+            const dayVel = th.velocity.find(v => v.date === dateStr);
+            entry[th.team] = dayVel ? dayVel.velocity : 0;
+        });
+        return entry;
+    });
+
+    return {
+        platformHealth,
+        velocityTrend,
+        clientHealth,
+        teamHealth,
+        teamVelocityTrend
+    };
+}
+
 /**
  * Generate mock data for testing (when Jira is not configured)
  */
@@ -531,7 +661,8 @@ export function generateMockData(dateRange) {
         environment: ['UAT', 'PROD', 'QA', 'Unknown'][Math.floor(Math.random() * 4)],
         source: ['Customer', 'Internal'][Math.floor(Math.random() * 2)],
         age: Math.floor(Math.random() * 60),
-        ageInHours: Math.floor(Math.random() * 1440)
+        ageInHours: Math.floor(Math.random() * 1440),
+        team: ['Frontend', 'Backend', 'Integration', 'Data Support', 'Cloud'][Math.floor(Math.random() * 5)]
     }));
 
     return {
@@ -550,3 +681,4 @@ export function generateMockData(dateRange) {
         byStatus: { Open: 40, Resolved: 50, Invalid: 5, Duplicate: 5 }
     };
 }
+

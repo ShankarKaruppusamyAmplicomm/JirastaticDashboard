@@ -703,10 +703,36 @@ h3 {
         justify-content: flex-start;
         -webkit-overflow-scrolling: touch;
     }
-    
-    .header-row::-webkit-scrollbar {
-        display: none;
-    }
+}
+
+.analytics-view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+.team-mini-card {
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.team-mini-card:hover {
+  transform: translateY(-2px);
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.chart-tooltip {
+  background: rgba(20, 20, 25, 0.9);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+.tooltip-label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 4px;
 }
 
 
